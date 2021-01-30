@@ -21,3 +21,17 @@
             }
         }
     }
+    function MailSender($str)
+    {
+        $to_mail = $str;
+        $subject = "test";
+        $message = "<html><body><h1>Verification</h1>";
+
+
+
+
+
+
+        $headers = 'From: noreply @ company . com';
+        mail($to_mail,$subject,$message,$headers);
+    }

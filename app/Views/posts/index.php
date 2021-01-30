@@ -4,8 +4,8 @@
             <h1>Posts</h1>
         </div>
         <div class="col-md-6">
-            <a href="<?php echo URLROOT;?>/posts/add" class="btn btn-primary pull-right">
-                <i class="fa fa-pencil"></i> Add Posts
+            <a href="<?php echo URLROOT; ?>/posts/add" class="btn btn-primary pull-right">
+                <i class="fa fa-pencil"></i> Add Post
             </a>
         </div>
     </div>
