@@ -21,17 +21,41 @@
             }
         }
     }
-    function MailSender($str)
+    function MailSender($data)
     {
-        $to_mail = $str;
+        $to_mail = $data['email'];
         $subject = "test";
-        $message = "<html><body><h1>Verification</h1>";
-
-
-
-
-
-
-        $headers = 'From: noreply @ company . com';
+        $message = '
+                        <html>
+                            <body>
+                                <p>
+                                    To activate your account please click 
+                                    <a href="http://'.getenv('HTTP_HOST'). '/Camagru/users/confirm/?token='. $data['token'].'"target="_blank""">
+                                        here
+                                    </a>
+                                </p>
+                            </body>
+                        </html>
+                    ';
+        $headers = 'Content-type: text/html; charset=iso-8859-1'."\r\n";
+        mail($to_mail,$subject,$message,$headers);
+    }
+    function passwordMail($data)
+    {
+        $to_mail = $data['email'];
+        $subject = "test";
+        $message = '
+                        <html>
+                            <body>
+                                <p>
+                                    Tap to the link to chage your password
+                                    <a href="http://'.getenv('HTTP_HOST'). '/Camagru/users/changepass/?token='. $data['token'].'"target="_blank""">
+                                        here
+                                    </a>
+                                </p>
+                            </body>
+                        </html>
+                    ';
+        $headers = 'Content-type: text/html; charset=iso-8859-1'."\r\n";
         mail($to_mail,$subject,$message,$headers);
     }
