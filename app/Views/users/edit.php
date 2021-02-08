@@ -4,6 +4,7 @@
         <div class="card card-body bg-light mt-5">
             <h2>Edit your data</h2>
             <form action="<?php echo URLROOT; ?>/users/edit" method="post">
+                <?php flash("No change"); ?>
                 <div class="form-group">
                     <label for="name">Name :</label>
                     <input type="text" name="name" class="form-control form-control-lg <?php echo (!empty($data['name_err'])) ? 'is-invalid' : ''; ?>" value="<?php echo $_SESSION['user_name'] ?>">
@@ -26,11 +27,11 @@
                 </div>
                 <div class="form-group">
                     <?php if ($_SESSION['user_notif']) { ?>
-                        <input type="checkbox" name="notification" checked>
-                        <label class="form-check-label" for="notification">Receive notifications by email</label>
+                        <input type="checkbox" name="notif" value="1" checked>
+                        <label class="form-check-label" for="notif">Receive notifications by email</label>
                     <?php } else { ?>
-                        <input type="checkbox" name="notification" unchecked>
-                        <label class="form-check-label" for="notification">Receive notifications by email</label>
+                        <input type="checkbox" name="notif" value="0" unchecked>
+                        <label class="form-check-label" for="notif">Receive notifications by email</label>
                     <?php } ?>
                 </div>
                 <div class="form-group">
@@ -40,10 +41,7 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        <input type="submit" value="Register" class="btn btn-success btn-block">
-                    </div>
-                    <div class="col">
-                        <a href="<?php echo URLROOT; ?>/users/login" class="btn btn-light btn-block">login</a>
+                        <input type="submit" value="Edit" class="btn btn-success btn-block">
                     </div>
                 </div>
 

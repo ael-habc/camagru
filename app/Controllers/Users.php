@@ -177,11 +177,12 @@ class Users extends Controller
   }
   public function createUserSession($user)
   {
+    header('location: ' . URLROOT . '/pages/index');
     $_SESSION['user_id'] = $user->id;
     $_SESSION['user_email'] = $user->email;
     $_SESSION['user_name'] = $user->username;
-    $_SESSION['user_notif'] = ($user->notification) ? 1 : 0; 
-    header('location: ' . URLROOT . '/pages/index');
+    $_SESSION['user_notif'] = ($user->notification) ? 1 : 0;
+    
   }
   public function logout()
   {
@@ -306,8 +307,7 @@ class Users extends Controller
   public function edit()
   {
     session_start();
-    $row = $this->userModel->getUserData($_SESSION['user_name']);
-    
+    $row = $this->userModel->getUserData($_SESSION['user_id']);
     // Check for POST
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       // Process form
@@ -320,7 +320,9 @@ class Users extends Controller
         'password' => trim($_POST['password']),
         'confirm_password' => trim($_POST['confirm_password']),
         'old_password' => trim($_POST['old_password']),
+        'notif' => $_POST['notif'],
         'name_err' => '',
+        'old_password_err' => '',
         'email_err' => '',
         'password_err' => '',
         'confirm_password_err' => '',
@@ -331,25 +333,18 @@ class Users extends Controller
       if (empty($data['email'])) {
         $data['email_err'] = 'Please enter email';
       } else {
-        if ($this->userModel->findUserByEmail($data['email']))
-          $data['email_err'] = 'Please already used';
-        elseif (!preg_match($regEmail, $data['email']))
+        if (!preg_match($regEmail, $data['email']))
           $data['email_err'] = 'Bad email format';
       }
       // Validate Name
       if (empty($data['name'])) {
         $data['name_err'] = 'Please enter name';
       } else {
-        if ($this->userModel->findUserByName($data['name']))
-          $data['name_err'] = 'Please already name';
-        elseif (!preg_match($regName, $data['name']))
+        if (!preg_match($regName, $data['name']))
           $data['name_err'] = 'name only accept Alphabet and numbers';
       }
-
       // Validate Password
-      if (empty($data['password'])) {
-        $data['password_err'] = 'Please enter password';
-      } else {
+      if (!empty($data['password'])) {
         if (strlen($data['password']) < 6)
           $data['password_err'] = 'Password must be at least 6 characters';
         else if (!preg_match("#[0-9]+#", $data['password']))
@@ -361,33 +356,41 @@ class Users extends Controller
         else if (!preg_match("#\W+#", $data['password']))
           $data['password_err'] = 'password must contain an one symbole ';
       }
-
       // Validate Confirm Password
-      if (empty($data['confirm_password'])) {
-        $data['confirm_password_err'] = 'Please confirm password';
-      } else {
-        if ($data['password'] != $data['confirm_password']) {
-          $data['confirm_password_err'] = 'Passwords do not match';
+      if ($data['password'] != $data['confirm_password'])
+        $data['confirm_password_err'] = 'Passwords do not match';
+      // Make sure errors are empty
+      if ($row->username != $data['name'] || $row->email != $data['email'] || !empty($data['password'])) {
+        //$pass = password_hash($data['old_password'], PASSWORD_DEFAULT);
+        if (empty($data['old_password'])) {
+          $data['old_password_err'] = "Please tap your old password to confirm";
+          //} elseif ($pass != $row->password) {
         }
       }
-
-      // Make sure errors are empty
-      if (empty($data['email_err']) && empty($data['name_err']) && empty($data['password_err']) && empty($data['confirm_password_err'])) {
+      if (empty($data['email_err']) && empty($data['name_err']) && empty($data['password_err']) && empty($data['confirm_password_err']) && empty($data['old_password_err'])) {
         // Validated
         {
-          //generete Token
-          $data['token'] = bin2hex(random_bytes(10));
-          //Hash Password
-          $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-          //register
-          if ($this->userModel->register($data)) {
-            flash('register_seccess', 'You are register please verify your email');
-            MailSender($data);
-            header('location: ' . URLROOT . '/users/login');
+          if ($row->username == $data['name'] && $row->email == $data['email'] && empty($data['password'])) {
+            flash("No change", "nothing change", "alert alert-warning");
+            $this->view('/users/edit', $data);
+          } else {
+            $isCor = $this->userModel->ChangeEdit($row->id, $data['old_password']);
+            if ($isCor) {
+              //Hash Password
+              if (!empty($data['password']))
+                $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+              //Edit
+              if ($this->userModel->edit($data)){
+                $NSess = $this->userModel->login($data['name'], $data['old_password']);
+                $this->createUserSession($NSess);
+              }
+            } else {
+              $data['old_password_err'] = "Password incorect";
+              $this->view('/users/edit', $data);
+            }
           }
         }
       } else {
-        // Load view with errors
         $this->view('users/edit', $data);
       }
     } else {
@@ -401,9 +404,9 @@ class Users extends Controller
         'email_err' => '',
         'password_err' => '',
         'confirm_password_err' => '',
+        'old_password_err' => '',
         'token' => ''
       ];
-
       // Load view
       $this->view('users/edit', $data);
     }

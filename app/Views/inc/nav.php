@@ -16,7 +16,7 @@
       <?php if (isset($_SESSION['user_id'])) { ?>
 
         <li class="nav-item ">
-          <a class="nav-link mb-0 h5" aria-current="page" href="<?php echo URLROOT; ?>/users/profile"><?php echo $_SESSION['user_name'] ?></a>
+          <a class="nav-link mb-0 h5" aria-current="page" href="<?php echo URLROOT; ?>/users/profile"><?php session_start(); echo $_SESSION['user_name'] ?></a>
         </li>
         <li class="nav-item ">
           <a class="nav-link" aria-current="page" href="<?php echo URLROOT; ?>/users/camera">Camera</a>

@@ -102,12 +102,28 @@ class User
         } else
             return false;
     }
-    public function getUserData($name)
+    public function getUserData($id)
     {
-        $this->db->query("SELECT * FROM user WHERE username =  :name");
-        $this->db->bind(':name', $name);
+        $this->db->query("SELECT * FROM user WHERE id =  :id");
+        $this->db->bind(':id', $id);
         $row = $this->db->single();
         return ($row);
+    }
+    public function edit($data)
+    {
+        if(!empty($data['password']))
+        {
+            $this->db->query('UPDATE user SET `username` = :name,`email`= :email,`password`= :password');
+            $this->db->bind(':name', $data['name']);
+            $this->db->bind(':email', $data['email']);
+            $this->db->bind(':password', $data['password']);
+            return ($this->db->execute()) ? true : false;
+        } else{
+            $this->db->query('UPDATE user SET `username` = :name,`email`= :email');
+            $this->db->bind(':name', $data['name']);
+            $this->db->bind(':email', $data['email']);
+            return ($this->db->execute()) ? true : false;
+        }
     }
     //Find user by email
     public function findUserByEmail($email)
@@ -133,5 +149,13 @@ class User
         $this->db->bind(':token', $token);
         $row = $this->db->single();
         return $row;
+    }
+    public function ChangeEdit($id,$password)
+    {
+        $this->db->query('SELECT * FROM user WHERE id = :id');
+        $this->db->bind(':id', $id);
+        $row = $this->db->single();
+        $hash_password = $row->password;
+        return (password_verify($password, $hash_password)) ? $row : false;   
     }
 }
