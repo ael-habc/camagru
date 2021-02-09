@@ -177,12 +177,11 @@ class Users extends Controller
   }
   public function createUserSession($user)
   {
-    header('location: ' . URLROOT . '/pages/index');
     $_SESSION['user_id'] = $user->id;
     $_SESSION['user_email'] = $user->email;
     $_SESSION['user_name'] = $user->username;
     $_SESSION['user_notif'] = ($user->notification) ? 1 : 0;
-    
+    header('location: ' . URLROOT . '/pages/index');
   }
   public function logout()
   {
@@ -327,6 +326,11 @@ class Users extends Controller
         'password_err' => '',
         'confirm_password_err' => '',
       ];
+      if (is_null($data['notif']))
+        $data['notif'] = 0;
+      else
+        $data['notif'] = 1;
+
       $regName = "/^[a-zA-Z\d\.]+$/";
       $regEmail = "/^[a-zA-Z\d\.]+@[a-zA-Z\d]+\.[a-zA-Z]+$/";
       // Validate Email
@@ -370,7 +374,7 @@ class Users extends Controller
       if (empty($data['email_err']) && empty($data['name_err']) && empty($data['password_err']) && empty($data['confirm_password_err']) && empty($data['old_password_err'])) {
         // Validated
         {
-          if ($row->username == $data['name'] && $row->email == $data['email'] && empty($data['password'])) {
+          if ($row->username == $data['name'] && $row->email == $data['email'] && empty($data['password']) && $row->notification == $data['notif']) {
             flash("No change", "nothing change", "alert alert-warning");
             $this->view('/users/edit', $data);
           } else {
@@ -380,8 +384,13 @@ class Users extends Controller
               if (!empty($data['password']))
                 $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
               //Edit
-              if ($this->userModel->edit($data)){
-                $NSess = $this->userModel->login($data['name'], $data['old_password']);
+              if ($this->userModel->edit($data)) {
+                if (empty($data['password']))
+                  $NSess =  $this->userModel->login($data['name'], $data['old_password']);
+                else {
+                  flash("relog", "Whene you change Password you need to relog", "alert alert-info");
+                  $NSess =  $this->userModel->login($data['name'], $data['password']);
+                }
                 $this->createUserSession($NSess);
               }
             } else {
@@ -410,5 +419,13 @@ class Users extends Controller
       // Load view
       $this->view('users/edit', $data);
     }
+  }
+  public function camera()
+  {
+    $this->view('posts/camera');
+  }
+  public function profile()
+  {
+    $this->view('users/profile');
   }
 }

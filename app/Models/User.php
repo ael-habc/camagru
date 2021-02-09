@@ -113,14 +113,16 @@ class User
     {
         if(!empty($data['password']))
         {
-            $this->db->query('UPDATE user SET `username` = :name,`email`= :email,`password`= :password');
+            $this->db->query('UPDATE user SET `username` = :name,`email`= :email,`notification` = :notif,`password`= :password');
             $this->db->bind(':name', $data['name']);
+            $this->db->bind(':notif', $data['notif']);
             $this->db->bind(':email', $data['email']);
             $this->db->bind(':password', $data['password']);
             return ($this->db->execute()) ? true : false;
         } else{
-            $this->db->query('UPDATE user SET `username` = :name,`email`= :email');
+            $this->db->query('UPDATE user SET `username` = :name,`email`= :email,`notification` = :notif');
             $this->db->bind(':name', $data['name']);
+            $this->db->bind(':notif', $data['notif']);
             $this->db->bind(':email', $data['email']);
             return ($this->db->execute()) ? true : false;
         }
