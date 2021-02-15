@@ -1,163 +1,190 @@
 <?php
-class User
-{
-    private $db;
 
-    public function __construct()
-    {
-        $this->db = new Database;
-    }
-    //register
+    class User {
+        private $db;
 
-    public function register($data)
-    {
-        $this->db->query('INSERT INTO user (`username`, `email`,`password`,`token`) VALUES (:name, :email,:password,:token)');
-        //bind Value
-        $this->db->bind(':email', $data['email']);
-        $this->db->bind(':name', $data['name']);
-        $this->db->bind(':password', $data['password']);
-        $this->db->bind(':token', $data['token']);
-
-        //execute
-        return ($this->db->execute()) ? true : false;
-    }
-
-    //login user
-    public function login($name, $password)
-    {
-        $this->db->query('SELECT * FROM user WHERE username = :name');
-        $this->db->bind(':name', $name);
-        $row = $this->db->single();
-        $hash_password = $row->password;
-        return (password_verify($password, $hash_password)) ? $row : false;
-    }
-    //confirmation
-    public function confirm($token)
-    {
-        $this->db->query('SELECT * FROM user WHERE token = :token');
-        $this->db->bind(':token', $token);
-        $row = $this->db->single();
-        if ($this->db->rowCount() > 0) {
-            $this->db->query('UPDATE user SET confirmed = 1,token = "" WHERE token = :token');
-            $this->db->bind(':token', $token);
-            return ($this->db->execute()) ? true : false;
-        } else
-            return false;
-    }
-    //expire token
-    public function expToken($token)
-    {
-        $this->db->query('SELECT * FROM user WHERE token = :token');
-        $this->db->bind(':token', $token);
-        $row = $this->db->single();
-        return ($this->db->rowCount() > 0) ? true : false;
-    }
-    public function genToken($data)
-    {
-        $this->db->query('SELECT * FROM user WHERE email = :email');
-        $this->db->bind(':email', $data['email']);
-        $row = $this->db->single();
-        if ($this->db->rowCount() > 0) {
-            $this->db->query('UPDATE user SET token = :token WHERE email = :email');
-            $this->db->bind(':token', $data['token']);
-            $this->db->bind(':email', $data['email']);
-            return ($this->db->execute()) ? true : false;
-        } else
-            return false;
-    }
-    //check is_confirm
-    public function is_confirmed($name)
-    {
-        $this->db->query('SELECT * FROM user WHERE username = :name');
-        $this->db->bind(':name', $name);
-        $row = $this->db->single();
-        return ($row->confirmed == 1) ?  true : false;
-    }
-    public function is_confirmedByEmail($email)
-    {
-        $this->db->query('SELECT * FROM user WHERE email = :email');
-        $this->db->bind(':email', $email);
-        $row = $this->db->single();
-        return ($row->confirmed == 1) ?  true : false;
-    }
-    public function getUserToken($email)
-    {
-        $this->db->query('SELECT * FROM user WHERE email = :email');
-        $this->db->bind(':email', $email);
-        $row = $this->db->single();
-        return ($row->token);
-    }
-    public function changepass($data)
-    {
-        $this->db->query("SELECT * FROM user WHERE token =  :token");
-        $this->db->bind(':token', $data['token']);
-        $row = $this->db->single();
-
-        if ($this->db->rowCount() > 0) {
-
-            $this->db->query('UPDATE user SET `password`= :password,token= "" WHERE token = :token');
-            $this->db->bind(':token', $data['token']);
-            $this->db->bind(':password', $data['password']);
-            return ($this->db->execute()) ? true : false;
-        } else
-            return false;
-    }
-    public function getUserData($id)
-    {
-        $this->db->query("SELECT * FROM user WHERE id =  :id");
-        $this->db->bind(':id', $id);
-        $row = $this->db->single();
-        return ($row);
-    }
-    public function edit($data)
-    {
-        if(!empty($data['password']))
+        public function __construct()
         {
-            $this->db->query('UPDATE user SET `username` = :name,`email`= :email,`notification` = :notif,`password`= :password');
-            $this->db->bind(':name', $data['name']);
-            $this->db->bind(':notif', $data['notif']);
-            $this->db->bind(':email', $data['email']);
-            $this->db->bind(':password', $data['password']);
-            return ($this->db->execute()) ? true : false;
-        } else{
-            $this->db->query('UPDATE user SET `username` = :name,`email`= :email,`notification` = :notif');
-            $this->db->bind(':name', $data['name']);
-            $this->db->bind(':notif', $data['notif']);
-            $this->db->bind(':email', $data['email']);
-            return ($this->db->execute()) ? true : false;
+            $this->db = new Db;
         }
-    }
-    //Find user by email
-    public function findUserByEmail($email)
-    {
-        $this->db->query('SELECT * FROM user WHERE email = :email');
-        $this->db->bind(':email', $email);
-        $row = $this->db->single();
-        //check row
-        return ($this->db->rowCount() > 0) ?  true : false;
-    }
-    public function findUserByName($name)
-    {
-        $this->db->query('SELECT * FROM user WHERE username = :name');
-        $this->db->bind(':name', $name);
-        $row = $this->db->single();
 
-        //check row
-        return ($this->db->rowCount() > 0) ?  true : false;
+
+        public function signup($data)
+        {   
+            $this->db->query('INSERT INTO users (fullname, email, username, password, token) VALUES(:fullname, :email, :username, :password, :token)');
+            $this->db->bind(':fullname', $data['fullname']);
+            $this->db->bind(':email', $data['email']);
+            $this->db->bind(':username', $data['username']);
+            $this->db->bind(':password', $data['password']);
+            $this->db->bind(':token', $data['token']);
+            
+            if ($this->db->execute())
+                return true;
+            else
+                return false;
+        }
+
+        public function login($username, $password)
+        {
+            $this->db->query('SELECT * FROM users WHERE username = :username');
+            $this->db->bind(':username', $username);
+            
+            $row = $this->db->singleFetch();
+            $hashed_pass = $row->password;
+            if (password_verify($password, $hashed_pass))
+                return $row;
+            else
+                return false;
+        }
+
+        public function verify($token, $type)
+        {
+            $this->db->query('SELECT * FROM users WHERE token = :token');
+            $this->db->bind(':token', $token);
+            
+            $row = $this->db->singleFetch();
+
+        if ($this->db->rowCount() > 0)
+        {
+            if ($type == 1)
+            {
+                $this->db->query('UPDATE users SET verified = 1 WHERE token = :token');
+                $this->db->bind(':token', $token);
+                if ($this->db->execute())
+                    return true;
+                else
+                    return false;
+            }
+            else
+                return true;
+        }
+        else
+            return false;
+        }
+
+        public function findUsrByEmail($email){
+
+            $this->db->query('SELECT * FROM users WHERE email = :email');
+            $this->db->bind(':email', $email);
+
+            if ($this->db->rowCount() > 0)
+                return true;
+            else
+                return false;
+        }
+
+        public function findUsrByUsername($username){
+
+            $this->db->query('SELECT * FROM users WHERE username = :username');
+            $this->db->bind(':username', $username);
+
+            if ($this->db->rowCount() > 0)
+                return true;
+            else
+                return false;
+        }
+
+        public function getUserToken($email){
+
+            $this->db->query('SELECT * FROM users WHERE email = :email');
+            $this->db->bind(':email', $email);
+
+            $row = $this->db->singleFetch();
+
+            if ($this->db->rowCount() > 0)
+                return $row;
+            else
+                return false;
+        }
+
+        public function update_username($new_username, $id){
+
+            $this->db->query('UPDATE users SET username = :username WHERE id = :id');
+            $this->db->bind(':username', $new_username);
+            $this->db->bind(':id', $id);
+
+            if ($this->db->execute())
+                return true;
+            else
+                return false;
+        }
+
+        public function update_fullname($new_fullname, $id){
+
+            $this->db->query('UPDATE users SET fullname = :fullname WHERE id = :id');
+            $this->db->bind(':fullname', $new_fullname);
+            $this->db->bind(':id', $id);
+
+            if ($this->db->execute())
+                return true;
+            else
+                return false;
+        }
+
+        public function update_pass($new_password, $id){
+            //die("in");
+
+            $this->db->query('UPDATE users SET password = :password WHERE id = :id');
+            $this->db->bind(':password', $new_password);
+            $this->db->bind(':id', $id);
+
+            if ($this->db->execute())
+                return true;
+            else
+                return false;
+        }
+
+        public function update_email($new_email, $id){
+
+            $this->db->query('UPDATE users SET email = :email WHERE id = :id');
+            $this->db->bind(':email', $new_email);
+            $this->db->bind(':id', $id);
+
+            if ($this->db->execute())
+                return true;
+            else
+                return false;
+        }
+
+        public function update_notifs($id, $status){
+            if ($status == 1)
+                $this->db->query('UPDATE users SET notification = 1 WHERE id = :id');
+            else
+                $this->db->query('UPDATE users SET notification = 0 WHERE id = :id');
+            $this->db->bind(':id', $id);
+
+            if ($this->db->execute())
+                return true;
+            else
+                return false;
+        }
+
+        public function gets_user($user_id)
+        {   
+            $this->db->query('SELECT * FROM users WHERE id = :id');
+            $this->db->bind(':id',$user_id);
+            $result = $this->db->singleFetch();
+            if($result)
+                return ($result);
+            else
+                return false;
+        }
+
+        public function setPhoto($post_img, $user_id)
+        {   
+            $this->db->query('SELECT * FROM posts WHERE content = :img AND user_id = :id');
+            $this->db->bind(':img',$post_img);
+            $this->db->bind(':id',$user_id);
+  
+            if ($this->db->rowCount() > 0)
+            {
+                $this->db->query('UPDATE users SET profile_img = :img WHERE id = :id');
+                $this->db->bind(':img',$post_img);
+                $this->db->bind(':id',$user_id);
+                if ($this->db->execute())
+                    return true;
+                else
+                    return false;
+            }
+        } 
     }
-    public function GetUserByToken($token)
-    {
-        $this->db->query('SELECT * FROM user WHERE token = :token');
-        $this->db->bind(':token', $token);
-        $row = $this->db->single();
-        return $row;
-    }
-    public function ChangeEdit($id,$password)
-    {
-        $this->db->query('SELECT * FROM user WHERE id = :id');
-        $this->db->bind(':id', $id);
-        $row = $this->db->single();
-        $hash_password = $row->password;
-        return (password_verify($password, $hash_password)) ? $row : false;   
-    }
-}

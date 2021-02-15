@@ -1,21 +1,35 @@
 <?php
-    class Pages extends Controller
-    {
+    class Pages extends Controller {
         public function __construct()
         {
-        }
-        public function index()
-        {
-     
-            $data = [
-                'title' => 'Welcome'
-            ];
-            $this->view("pages/index",$data);
+            $this->postModel = $this->model('Post');
             
         }
-        public function about()
+
+        public function index()
         {
-            $data = ['title' => 'About Us'];
-            $this->view("pages/about",$data);
+            $postsPerPage = 5;
+            $totalPosts = $this->postModel->count_posts();
+            $totalPages = ceil($totalPosts/$postsPerPage);
+
+            if(isset($_GET['page']) AND !empty($_GET['page']) AND $_GET['page'] > 0 AND $_GET['page'] <= $totalPages){
+
+            $_GET['page'] = intval($_GET['page']);
+            $currentPage = $_GET['page'];    
+            }else
+            $currentPage = 1;
+
+            $depart = ($currentPage - 1) * $postsPerPage;
+            $post = $this->postModel->getPostsPage($depart, $postsPerPage);
+            $comments = $this->postModel->getcomments();
+            $data = [
+                'posts' =>$post,
+                'comments'=> $comments,
+                'totalPages' => $totalPages,
+                'currentPage' => $currentPage,
+                'depart' => $depart
+            ];
+            $this->view('pages/index', $data);
         }
+
     }

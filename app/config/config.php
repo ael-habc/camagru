@@ -1,13 +1,11 @@
 <?php
-    //DB Params
-    define('DB_HOST',$_SERVER['SERVER_NAME']);
-    define('DB_USER','root');
-    define('DB_PASS','tiger');
-    define('DB_NAME','camagru');
 
-    //APP ROOT
-    define('APPROOT',dirname(dirname(__FILE__)));
-    //URL ROOT
-    define('URLROOT','http://'.$_SERVER['SERVER_NAME'].':8088/camagru');
-    //SITE NAME
-    define('SITENAME','Camagru');
+    define('DB_HOST', $_SERVER['SERVER_NAME'].':2021');
+    define('DB_USER', 'root');
+    define('DB_PWD', 'myrootpass');
+    define('DB_NAME', 'camagru_db');
+
+    define('CAMAGRU_ROOT', dirname(dirname(__FILE__)));
+    define('URL_ROOT', 'https://'.$_SERVER['SERVER_NAME'].':8081');
+    define('SITE_NAME', 'Camagru');
+
